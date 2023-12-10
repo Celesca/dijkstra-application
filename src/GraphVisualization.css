@@ -1,0 +1,54 @@
+.title {
+    text-align: center;
+    background-color: pink;
+    padding: 5px;
+}
+
+.title h1 {
+    font-size: 30px;
+}
+
+
+.option-container {
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    text-align: center;
+    font-size: 16px;
+    align-items:center;
+}
+
+.start-container select {
+    padding: 10px 30px;
+    border-radius: 10px;
+    font-size: 16px;
+    margin: 10px 0;
+}
+
+.end-container select {
+    padding: 10px 30px;
+    border-radius: 10px;
+    font-size: 16px;
+    margin: 10px 0;
+}
+
+.visual-button {
+    border:0;
+    padding: 15px 40px;
+    border-radius: 10px;
+    border:0;
+    font-size: 18px;   
+    margin-top: 30px;
+}
+
+.visual-button:hover {
+    cursor: pointer;
+    background-color: yellowgreen;
+}
+
+.result-text {
+    margin-top: 40px;
+    font-size: 22px;
+    color: red;
+}
