@@ -6,9 +6,9 @@ import './GraphVisualization.css'
 const GraphVisualization = () => {
   const graph = {
     nodes: [
-      { id: 'A', label: 'A' },
-      { id: 'B', label: 'B' },
-      { id: 'C', label: 'C' },
+      { id: 'A', label: 'A - หอพัก' },
+      { id: 'B', label: 'B - ตึกปฏิบัติการ' },
+      { id: 'C', label: 'C - ' },
       { id: 'D', label: 'D' },
       { id: 'E', label: 'E' },
       { id: 'F', label: 'F' },
@@ -192,8 +192,8 @@ const GraphVisualization = () => {
             <h1>RC Shortest Path</h1>
             <p>ค้นหาเส้นทางที่ดีที่สุดในการเดินทางที่ RC</p>
         </div>
-        <div style={{display:'flex'}}>
-            <div id="graph-container" style={{ marginLeft:"50px", height: '500px' , width: '50%' }}></div>
+        <div className="main-container">
+            <div id="graph-container" ></div>
             <div className="option-container">
                 <div className="start-container">
                     <h2>จุดเริ่มต้น : </h2>

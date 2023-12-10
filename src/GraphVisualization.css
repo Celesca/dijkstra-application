@@ -52,3 +52,27 @@
     font-size: 22px;
     color: red;
 }
+
+.main-container {
+    display: flex;
+}
+
+#graph-container {
+    margin-left:50px;
+    height: 500px ;
+    width: 50%;
+}
+
+@media only screen and (max-width: 726px) {
+    .main-container {
+        flex-direction: column;
+    }
+    #graph-container {
+        margin-left:0 !important;
+        width: 100% !important;
+    }
+    .option-container {
+        text-align :center;
+        width: 100%;
+    }
+}
