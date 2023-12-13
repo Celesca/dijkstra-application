@@ -17,6 +17,7 @@ The project was created using React, Vis.js
 
 - React
 - Vis.js
+- Bootstrap
 
 ## Installation
 
