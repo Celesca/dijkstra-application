@@ -4,31 +4,40 @@ import 'vis-network/styles/vis-network.css';
 import './GraphVisualization.css'
 
 const GraphVisualization = () => {
-  const graph = {
+  const [graph,setGraph] = useState({
     nodes: [
       { id: 'A', label: 'A - หอพัก' },
-      { id: 'B', label: 'B - ตึกปฏิบัติการ' },
-      { id: 'C', label: 'C - ' },
-      { id: 'D', label: 'D' },
-      { id: 'E', label: 'E' },
-      { id: 'F', label: 'F' },
+      { id: 'B', label: 'B - ปฏิบัติการ' },
+      { id: 'C', label: 'C - เรียนรวม' },
+      { id: 'D', label: 'D - แลปไฟฟ้า' },
+      { id: 'E', label: 'E - รมณียาคาร' },
+      { id: 'F', label: 'F - หอสมุด' },
+      { id: 'G', label: 'G - โรงอาหาร'}
     ],
     edges: [
-      { from: 'A', to: 'B', label: '4' },
-      { from: 'A', to: 'C', label: '2' },
-      { from: 'B', to: 'C', label: '5' },
-      { from: 'B', to: 'D', label: '10' },
-      { from: 'C', to: 'D', label: '3' },
-      { from: 'D', to: 'E', label: '7' },
-      { from: 'E', to: 'F', label: '1' },
+      { from: 'A', to: 'B', label: '120' },
+      { from: 'A', to: 'C', label: '360' },
+      { from: 'B', to: 'C', label: '165' },
+      { from: 'B', to: 'D', label: '45'  },
+      { from: 'B', to: 'F', label: '165' },
+      { from: 'B', to: 'G', label: '165' },
+      { from: 'C', to: 'D', label: '180' },
+      { from: 'C', to: 'F', label: '120' },
+      { from: 'C', to: 'G', label: '240' },
+      { from: 'D', to: 'E', label: '180' },
+      { from: 'D', to: 'G', label: '180' },
+      { from: 'E', to: 'G', label: '60'  },
+      { from: 'F', to: 'G', label: '180' }
     ],
-  };
+  })
 
+  const [bicycle, setBicycle] = useState(false);
   const [startNode, setStartNode] = useState('');
   const [endNode, setEndNode] = useState('');
   const [shortestPath, setShortestPath] = useState([]);
   const highlightedEdgesRef = useRef([]);
   const [displayText,setDisplayText] = useState('');
+  const [distanceText, setDistanceText] = useState('');
 
   useEffect(() => {
     // Create nodes and edges data sets
@@ -44,29 +53,29 @@ const GraphVisualization = () => {
     // Specify options for the network visualization
     const options = {
       layout: {
-        randomSeed: 2,
+        randomSeed: 39,
         improvedLayout: true, // Set to false to disable physics-based layout
       },
       edges: {
         color: '#000000',
         font: {
-          size: 16,
+          size: 14,
           color: '#000000',
           align: 'top'
         },
-        width: 2,
+        width: 1.5,
       },
       physics: {
         enabled:false, // Set to true for physics-based layout
       },
       nodes: {
         shape: 'dot',
-        size: 20,
+        size: 16,
         font: {
-          size: 16,
+          size: 14,
           color: '#000000',
         },
-        borderWidth: 1, // Set the size of all nodes
+        borderWidth: 0.5, // Set the size of all nodes
       },
     };
 
@@ -82,24 +91,37 @@ const GraphVisualization = () => {
     // Highlight the shortest path edges
     shortestPath.forEach((node, index) => {
       if (index < shortestPath.length - 1) {
-        const edgeId = edges.getIds({ filter: (edge) => edge.from === node && edge.to === shortestPath[index + 1] })[0];
-        edges.update({ id: edgeId, color: 'red' });
-        highlightedEdgesRef.current.push(edgeId);
+        const edgeId = edges.getIds({
+          filter: (edge) =>
+            (edge.from === node && edge.to === shortestPath[index + 1]) ||
+            (edge.to === node && edge.from === shortestPath[index + 1])
+        })[0];
+        if (edgeId !== undefined) {
+          edges.update({ id: edgeId, color: 'red' });
+          highlightedEdgesRef.current.push(edgeId);
+        }
       }
     });
 
     // Update and shows the text
-    console.log(shortestPath)
-    let resultText = ""
-    shortestPath.map((node)=> {
-        if (node !== shortestPath[shortestPath.length - 1]) {
-            resultText = resultText + node + ", "
+    console.log(shortestPath);
+    let resultText = '';
+    let totalDistance = 0;
+    shortestPath.forEach((node, index) => {
+      if (index < shortestPath.length - 1) {
+        const edge = graph.edges.find(
+          (e) => e.from === node && e.to === shortestPath[index + 1]
+        );
+        if (edge) {
+          resultText = resultText + node + ' -> ';
+          totalDistance += parseInt(edge.label, 10);
         }
-        else {
-            resultText += node
-        }
-    })
-    setDisplayText(resultText)
+      } else {
+        resultText += node;
+      }
+    });
+    setDisplayText(resultText);
+    setDistanceText(totalDistance.toString());
 
     console.log(resultText)
 
@@ -131,6 +153,11 @@ const GraphVisualization = () => {
       return [];
     }
   
+    // Swap values if startNode has higher ASCII value than endNode
+    if (startNode > endNode) {
+      [startNode, endNode] = [endNode, startNode];
+    }
+  
     // Placeholder implementation using Dijkstra's algorithm
     const nodes = new Set(graph.nodes.map((node) => node.id));
     const distances = {};
@@ -142,7 +169,9 @@ const GraphVisualization = () => {
     });
   
     while (nodes.size > 0) {
-      const currentNode = Array.from(nodes).reduce((minNode, node) => (distances[node] < distances[minNode] ? node : minNode));
+      const currentNode = Array.from(nodes).reduce((minNode, node) =>
+        distances[node] < distances[minNode] ? node : minNode
+      );
       nodes.delete(currentNode);
   
       graph.edges
@@ -172,7 +201,9 @@ const GraphVisualization = () => {
     // Highlight the shortest path edges
     const highlightedEdges = [];
     for (let i = 0; i < path.length - 1; i++) {
-      const edge = graph.edges.find((e) => e.from === path[i] && e.to === path[i + 1]);
+      const edge = graph.edges.find(
+        (e) => e.from === path[i] && e.to === path[i + 1]
+      );
       if (edge) {
         highlightedEdges.push(edge.id);
       }
@@ -186,18 +217,91 @@ const GraphVisualization = () => {
     return path;
   };
 
+  const handleBicycle =() => {
+    setBicycle(!bicycle)
+    if (!bicycle) {
+      const bicycleGraph = 
+        {
+          nodes: [
+            { id: 'A', label: 'A - หอพัก' },
+            { id: 'B', label: 'B - ปฏิบัติการ' },
+            { id: 'C', label: 'C - เรียนรวม' },
+            { id: 'D', label: 'D - แลปไฟฟ้า' },
+            { id: 'E', label: 'E - รมณียาคาร' },
+            { id: 'F', label: 'F - หอสมุด' },
+            { id: 'G', label: 'G - โรงอาหาร'}
+          ],
+          edges: [
+            { from: 'A', to: 'B', label: '75' },
+            { from: 'A', to: 'C', label: '165' },
+            { from: 'B', to: 'C', label: '165' },
+            { from: 'B', to: 'D', label: '10'  },
+            { from: 'B', to: 'F', label: '165' },
+            { from: 'B', to: 'G', label: '165' },
+            { from: 'C', to: 'D', label: '180' },
+            { from: 'C', to: 'F', label: '30' },
+            { from: 'C', to: 'G', label: '240' },
+            { from: 'D', to: 'E', label: '90' },
+            { from: 'D', to: 'G', label: '180' },
+            { from: 'E', to: 'G', label: '20'  },
+            { from: 'F', to: 'G', label: '60'}
+          ],
+        }
+
+      setGraph(bicycleGraph)
+    }
+    else {
+      const walkGraph = 
+        {
+          nodes: [
+            { id: 'A', label: 'A - หอพัก' },
+            { id: 'B', label: 'B - ปฏิบัติการ' },
+            { id: 'C', label: 'C - เรียนรวม' },
+            { id: 'D', label: 'D - แลปไฟฟ้า' },
+            { id: 'E', label: 'E - รมณียาคาร' },
+            { id: 'F', label: 'F - หอสมุด' },
+            { id: 'G', label: 'G - โรงอาหาร'}
+          ],
+          edges: [
+            { from: 'A', to: 'B', label: '120' },
+            { from: 'A', to: 'C', label: '360' },
+            { from: 'B', to: 'C', label: '165' },
+            { from: 'B', to: 'D', label: '45'  },
+            { from: 'B', to: 'F', label: '165' },
+            { from: 'B', to: 'G', label: '165' },
+            { from: 'C', to: 'D', label: '180' },
+            { from: 'C', to: 'F', label: '120' },
+            { from: 'C', to: 'G', label: '240' },
+            { from: 'D', to: 'E', label: '180' },
+            { from: 'D', to: 'G', label: '180' },
+            { from: 'E', to: 'G', label: '60'  },
+            { from: 'F', to: 'G', label: '180' }
+          ]
+        }
+
+        setGraph(walkGraph)
+    }
+  }
+
   return (
     <>
         <div className="title">
             <h1>RC Shortest Path</h1>
             <p>ค้นหาเส้นทางที่ดีที่สุดในการเดินทางที่ RC</p>
         </div>
+        <div>
+          <div class="form-check form-switch pt-4 bicycle-container">
+            <input class="form-check-input bicycle" type="checkbox" id="flexSwitchCheckDefault" checked={bicycle} onClick={handleBicycle} />
+            <label class="form-check-label ms-4" for="flexSwitchCheckDefault">ใช้จักรยาน</label>
+          </div>
+        </div>
         <div className="main-container">
-            <div id="graph-container" ></div>
+            <div id="graph-container" >
+            </div>
             <div className="option-container">
                 <div className="start-container">
-                    <h2>จุดเริ่มต้น : </h2>
-                    <select value={startNode} onChange={handleStartNodeChange}>
+                    <h3>จุดเริ่มต้น : </h3>
+                    <select className="form-select mt-4" value={startNode} onChange={handleStartNodeChange}>
                     <option value="">เลือกจุด</option>
                     {graph.nodes.map((node) => (
                         <option key={node.id} value={node.id}>
@@ -207,8 +311,8 @@ const GraphVisualization = () => {
                     </select>
                 </div>
                 <div className="end-container">
-                    <h2>จุดสุดท้าย :</h2>
-                    <select value={endNode} onChange={handleEndNodeChange}>
+                    <h3 class="mt-4">จุดสุดท้าย :</h3>
+                    <select className="form-select mt-4" value={endNode} onChange={handleEndNodeChange}>
                     <option value="">เลือกจุด</option>
                     {graph.nodes.map((node) => (
                         <option key={node.id} value={node.id}>
@@ -217,8 +321,9 @@ const GraphVisualization = () => {
                     ))}
                     </select>
                 </div>
-                <button className="visual-button"onClick={handleVisualizeClick}>หาเส้นทางที่เร็วที่สุด</button>
+                <button className="btn btn-primary visual-button" onClick={handleVisualizeClick}>หาเส้นทางที่เร็วที่สุด</button>
                 <p className="result-text">เส้นทางที่ดีที่สุดคือ : {displayText}</p>
+                <p className="distance-text">ระยะเวลาที่ใช้ : {distanceText} วินาที</p> 
             </div>
         </div>
     </>
